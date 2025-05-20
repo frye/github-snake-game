@@ -1,0 +1,172 @@
+:root {
+    --github-bg: #0d1117;
+    --github-fg: #c9d1d9;
+    --github-green-0: #161b22;
+    --github-green-1: #0e4429;
+    --github-green-2: #006d32;
+    --github-green-3: #26a641;
+    --github-green-4: #39d353;
+    --github-border: #30363d;
+    --snake-head: #39d353;
+    --snake-body: #26a641;
+    --snake-eyes: #0d1117;
+    --icon-fill: #ffffff;
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --github-bg: #ffffff;
+        --github-fg: #24292f;
+        --github-green-0: #ebedf0;
+        --github-green-1: #9be9a8;
+        --github-green-2: #40c463;
+        --github-green-3: #30a14e;
+        --github-green-4: #216e39;
+        --github-border: #d0d7de;
+        --snake-head: #216e39;
+        --snake-body: #30a14e;
+        --snake-eyes: #ffffff;
+        --icon-fill: #24292f;
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background-color: var(--github-bg);
+    color: var(--github-fg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.game-container {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.game-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0 10px;
+}
+
+.game-header h1 {
+    font-size: 1.8rem;
+    color: var(--github-fg);
+}
+
+.score-container, .high-score-container {
+    font-size: 1.2rem;
+}
+
+#game-board {
+    border: 2px solid var(--github-border);
+    background-color: var(--github-bg);
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%; /* Square aspect ratio */
+    position: relative;
+}
+
+.game-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 15px;
+}
+
+.controls-row {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+button {
+    background-color: var(--github-border);
+    color: var(--github-fg);
+    border: none;
+    border-radius: 6px;
+    padding: 10px 15px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: var(--github-green-2);
+}
+
+#game-over {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10;
+}
+
+.game-over-content {
+    background-color: var(--github-bg);
+    border: 2px solid var(--github-border);
+    border-radius: 6px;
+    padding: 30px;
+    text-align: center;
+}
+
+.game-over-content h2 {
+    margin-bottom: 15px;
+    color: var(--github-fg);
+}
+
+.game-over-content p {
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+}
+
+#restart-btn {
+    background-color: var(--github-green-2);
+    padding: 10px 20px;
+    font-size: 1rem;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .game-controls {
+        display: none; /* Hide on-screen controls on larger screens (use keyboard) */
+    }
+    
+    #game-board {
+        max-height: 600px;
+    }
+}
+
+@media (max-width: 500px) {
+    .game-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+}
