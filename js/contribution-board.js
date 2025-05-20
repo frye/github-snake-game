@@ -10,13 +10,16 @@ class ContributionBoard {
         this.cellSize = cellSize;
         this.padding = 1; // Space between cells
         
+        // Get computed CSS values
+        const rootStyle = getComputedStyle(document.documentElement);
+        
         // GitHub contribution colors
         this.colors = {
-            0: 'var(--github-green-0)', // Empty
-            1: 'var(--github-green-1)', // Light
-            2: 'var(--github-green-2)', // Medium
-            3: 'var(--github-green-3)', // Dark
-            4: 'var(--github-green-4)'  // Very Dark
+            0: rootStyle.getPropertyValue('--github-green-0').trim(),
+            1: rootStyle.getPropertyValue('--github-green-1').trim(),
+            2: rootStyle.getPropertyValue('--github-green-2').trim(), 
+            3: rootStyle.getPropertyValue('--github-green-3').trim(),
+            4: rootStyle.getPropertyValue('--github-green-4').trim()
         };
         
         this.board = [];
@@ -26,25 +29,18 @@ class ContributionBoard {
     
     // Initialize the board with dimensions based on canvas size
     init() {
-        // Resize canvas to fill parent container while maintaining aspect ratio
-        const container = this.canvas.parentElement;
+        // Use the canvas dimensions provided externally
+        console.log(`Canvas dimensions: ${this.canvas.width}x${this.canvas.height}`);
         
-        // Set canvas dimensions
-        const containerWidth = container.clientWidth;
-        this.canvas.width = containerWidth;
-        this.canvas.height = containerWidth; // Square canvas
-        
-        // Reset the style
-        this.canvas.style.width = '100%';
-        this.canvas.style.height = 'auto';
-        
-        // Calculate rows and columns
+        // Calculate rows and columns based on cell size
         this.cols = Math.floor(this.canvas.width / (this.cellSize + this.padding));
         this.rows = Math.floor(this.canvas.height / (this.cellSize + this.padding));
         
         // Make sure we have even number of rows/cols
         this.cols = this.cols - (this.cols % 2);
         this.rows = this.rows - (this.rows % 2);
+        
+        console.log(`Board dimensions: ${this.cols}x${this.rows} cells`);
         
         // Initialize empty board
         this.reset();
@@ -98,8 +94,12 @@ class ContributionBoard {
         const xPos = x * (this.cellSize + this.padding);
         const yPos = y * (this.cellSize + this.padding);
         
+        // Add a border for better visibility of cells during debugging
         this.ctx.fillStyle = color;
         this.ctx.fillRect(xPos, yPos, this.cellSize, this.cellSize);
+        
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        this.ctx.strokeRect(xPos, yPos, this.cellSize, this.cellSize);
     }
     
     // Get position in pixels

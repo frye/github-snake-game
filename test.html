@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Rendering Test</title>
+    <style>
+        body {
+            background-color: #222;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            flex-direction: column;
+        }
+        canvas {
+            background-color: #333;
+            border: 2px solid white;
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Snake Rendering Test</h1>
+    <canvas id="game-board" width="500" height="500"></canvas>
+    <div class="controls">
+        <button onclick="location.reload()">Refresh Test</button>
+    </div>
+    
+    <script src="debug.js"></script>
+    <script src="snake-test.js"></script>
+</body>
+</html>

@@ -1,6 +1,5 @@
 /**
- * GitHub Snake Game
- * A snake game with GitHub contribution graph aesthetics
+ * GitHub Snake Game - Simplified Version
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,61 +11,41 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.width = 500;
     canvas.height = 500;
     
-    // Grid cell size - increased for better visibility
-    const CELL_SIZE = 20; // Size of each cell in pixels
+    // Grid cell size
+    const CELL_SIZE = 20;
+    const GRID_SIZE = 25; // 500/20 = 25 cells
     
     // Game variables
     let snake = [];
     let direction = 'right';
     let nextDirection = 'right';
-    let food = null;
+    let food = { x: 0, y: 0 };
     let score = 0;
-    let highScore = localStorage.getItem('github-snake-high-score') || 0;
-    let gameSpeed = 150; // milliseconds between moves
     let gameLoop = null;
     let gameActive = false;
     
-    // Initialize the GitHub icons
-    const githubIcons = new GithubIcons();
-    
-    // Initialize the contribution board
-    const board = new ContributionBoard(canvas, CELL_SIZE);
-    
-    // Color scheme detection
-    const colorSchemeMedia = window.matchMedia('(prefers-color-scheme: dark)');
-    colorSchemeMedia.addEventListener('change', handleColorSchemeChange);
-    
     // DOM elements
     const scoreElement = document.getElementById('score');
-    const highScoreElement = document.getElementById('high-score');
     const gameOverElement = document.getElementById('game-over');
     const finalScoreElement = document.getElementById('final-score');
     const restartButton = document.getElementById('restart-btn');
     
-    // Touch controls
-    const upBtn = document.getElementById('up-btn');
-    const downBtn = document.getElementById('down-btn');
-    const leftBtn = document.getElementById('left-btn');
-    const rightBtn = document.getElementById('right-btn');
-    
     // Initialize the game
     function init() {
-        // Set high score from local storage
-        highScoreElement.textContent = highScore;
-        
-        // Initialize the board
-        board.init();
-        
         // Add event listeners
         document.addEventListener('keydown', handleKeyPress);
-        window.addEventListener('resize', handleResize);
         restartButton.addEventListener('click', startGame);
         
-        // Touch controls
-        upBtn.addEventListener('click', () => changeDirection('up'));
-        downBtn.addEventListener('click', () => changeDirection('down'));
-        leftBtn.addEventListener('click', () => changeDirection('left'));
-        rightBtn.addEventListener('click', () => changeDirection('right'));
+        // Initialize touch controls if they exist
+        const upBtn = document.getElementById('up-btn');
+        const downBtn = document.getElementById('down-btn');
+        const leftBtn = document.getElementById('left-btn');
+        const rightBtn = document.getElementById('right-btn');
+        
+        if (upBtn) upBtn.addEventListener('click', () => changeDirection('up'));
+        if (downBtn) downBtn.addEventListener('click', () => changeDirection('down'));
+        if (leftBtn) leftBtn.addEventListener('click', () => changeDirection('left'));
+        if (rightBtn) rightBtn.addEventListener('click', () => changeDirection('right'));
         
         // Start the game
         startGame();
@@ -75,27 +54,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reset and start the game
     function startGame() {
         // Hide game over screen
-        gameOverElement.classList.add('hidden');
+        if (gameOverElement) gameOverElement.classList.add('hidden');
         
         // Reset game variables
         snake = [];
         score = 0;
-        gameSpeed = 150;
-        scoreElement.textContent = '0';
+        if (scoreElement) scoreElement.textContent = '0';
         
         // Reset the direction
         direction = 'right';
         nextDirection = 'right';
         
-        // Reset the board
-        board.reset();
-        
         // Create snake in the middle of the board
-        const startX = Math.floor(board.cols / 4);
-        const startY = Math.floor(board.rows / 2);
+        const startX = Math.floor(GRID_SIZE / 4);
+        const startY = Math.floor(GRID_SIZE / 2);
         
-        // Debug log
-        console.log(`Board dimensions: ${board.cols}x${board.rows}`);
         console.log(`Starting snake at ${startX},${startY}`);
         
         // Start with a snake of length 3
@@ -103,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
             snake.push({ x: startX - i, y: startY });
         }
         
-        // Log snake positions
         console.log('Snake segments:', snake.map(s => `(${s.x},${s.y})`).join(', '));
         
         // Create first food
@@ -113,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (gameLoop) clearInterval(gameLoop);
         gameActive = true;
         
-        gameLoop = setInterval(update, gameSpeed);
+        gameLoop = setInterval(update, 150);
         
         // Draw the initial state
         draw();
@@ -169,9 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Add new head to the beginning of the snake array
         snake.unshift(head);
-        
-        // Increase cell intensity where snake passes
-        board.increaseIntensity(head.x, head.y);
     }
     
     // Check for collisions
@@ -181,9 +150,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check for wall collision
         if (
             head.x < 0 || 
-            head.x >= board.cols || 
+            head.x >= GRID_SIZE || 
             head.y < 0 || 
-            head.y >= board.rows
+            head.y >= GRID_SIZE
         ) {
             return true;
         }
@@ -205,47 +174,23 @@ document.addEventListener('DOMContentLoaded', () => {
         
         do {
             newFoodPos = {
-                x: Math.floor(Math.random() * board.cols),
-                y: Math.floor(Math.random() * board.rows)
+                x: Math.floor(Math.random() * GRID_SIZE),
+                y: Math.floor(Math.random() * GRID_SIZE)
             };
-        } while (isPositionOccupied(newFoodPos));
+        } while (snake.some(segment => segment.x === newFoodPos.x && segment.y === newFoodPos.y));
         
-        // Get a random GitHub icon
-        const icon = githubIcons.getRandomIcon();
-        
-        // Create food object
-        food = {
-            x: newFoodPos.x,
-            y: newFoodPos.y,
-            icon: icon
-        };
-    }
-    
-    // Check if a position is occupied by the snake
-    function isPositionOccupied(pos) {
-        return snake.some(segment => segment.x === pos.x && segment.y === pos.y);
+        food = newFoodPos;
+        console.log(`Food created at ${food.x},${food.y}`);
     }
     
     // Handle snake eating food
     function eatFood() {
         // Increase score
-        score += food.icon.points;
-        scoreElement.textContent = score;
-        
-        // Check for high score
-        if (score > highScore) {
-            highScore = score;
-            highScoreElement.textContent = highScore;
-            localStorage.setItem('github-snake-high-score', highScore);
-        }
+        score += 1;
+        if (scoreElement) scoreElement.textContent = score;
         
         // Create new food
         createFood();
-        
-        // Increase game speed
-        gameSpeed = Math.max(50, gameSpeed - 2);
-        clearInterval(gameLoop);
-        gameLoop = setInterval(update, gameSpeed);
     }
     
     // Draw the game
@@ -253,47 +198,54 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Draw the contribution board
-        board.draw();
+        // Draw background grid
+        ctx.fillStyle = '#161b22'; // Dark background
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Log rendering status
-        console.log(`Drawing snake with ${snake.length} segments at:`, snake.map(s => `(${s.x},${s.y})`).join(', '));
-        console.log(`Drawing food at: (${food.x},${food.y})`);
-        
-        // Draw food with background for better visibility
-        if (food) {
-            const foodPos = board.getPixelPosition(food.x, food.y);
-            
-            // Draw a large, bright orange background circle for maximum visibility
-            ctx.fillStyle = '#FF5500';
+        // Grid lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        for (let i = 0; i < canvas.width; i += CELL_SIZE) {
             ctx.beginPath();
-            ctx.arc(
-                foodPos.x + CELL_SIZE / 2, 
-                foodPos.y + CELL_SIZE / 2, 
-                CELL_SIZE / 1.5, 
-                0, 
-                Math.PI * 2
-            );
-            ctx.fill();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, canvas.height);
+            ctx.stroke();
             
-            // Draw the icon
-            githubIcons.drawIcon(ctx, food.icon, foodPos.x, foodPos.y, CELL_SIZE);
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(canvas.width, i);
+            ctx.stroke();
         }
         
-        // Draw snake using high-contrast colors for visibility
+        // Draw food - bright orange circle
+        const foodX = food.x * CELL_SIZE;
+        const foodY = food.y * CELL_SIZE;
+        
+        ctx.fillStyle = '#FF5500';
+        ctx.beginPath();
+        ctx.arc(
+            foodX + CELL_SIZE / 2, 
+            foodY + CELL_SIZE / 2, 
+            CELL_SIZE / 2, 
+            0, 
+            Math.PI * 2
+        );
+        ctx.fill();
+        
+        // Draw snake - red head, green body
         snake.forEach((segment, index) => {
-            const pos = board.getPixelPosition(segment.x, segment.y);
+            const x = segment.x * CELL_SIZE;
+            const y = segment.y * CELL_SIZE;
             
-            // Use bright red head, bright green body for maximum visibility
+            // Red head, green body for high visibility
             ctx.fillStyle = index === 0 ? '#FF0000' : '#00FF00';
-            ctx.fillRect(pos.x, pos.y, CELL_SIZE, CELL_SIZE);
+            ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
             
             // Add eyes to the head
             if (index === 0) {
-                ctx.fillStyle = '#FFFFFF';  // White eyes for contrast
+                ctx.fillStyle = '#FFFFFF';
                 
                 // Position eyes based on direction
-                const eyeSize = CELL_SIZE / 4;  // Larger eyes
+                const eyeSize = CELL_SIZE / 4;
                 const eyeOffset = CELL_SIZE / 3;
                 
                 // Left eye
@@ -303,28 +255,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 switch (direction) {
                     case 'up':
-                        leftEyeX = pos.x + eyeOffset;
-                        leftEyeY = pos.y + eyeOffset;
-                        rightEyeX = pos.x + CELL_SIZE - eyeOffset - eyeSize;
-                        rightEyeY = pos.y + eyeOffset;
+                        leftEyeX = x + eyeOffset;
+                        leftEyeY = y + eyeOffset;
+                        rightEyeX = x + CELL_SIZE - eyeOffset - eyeSize;
+                        rightEyeY = y + eyeOffset;
                         break;
                     case 'down':
-                        leftEyeX = pos.x + eyeOffset;
-                        leftEyeY = pos.y + CELL_SIZE - eyeOffset - eyeSize;
-                        rightEyeX = pos.x + CELL_SIZE - eyeOffset - eyeSize;
-                        rightEyeY = pos.y + CELL_SIZE - eyeOffset - eyeSize;
+                        leftEyeX = x + eyeOffset;
+                        leftEyeY = y + CELL_SIZE - eyeOffset - eyeSize;
+                        rightEyeX = x + CELL_SIZE - eyeOffset - eyeSize;
+                        rightEyeY = y + CELL_SIZE - eyeOffset - eyeSize;
                         break;
                     case 'left':
-                        leftEyeX = pos.x + eyeOffset;
-                        leftEyeY = pos.y + eyeOffset;
-                        rightEyeX = pos.x + eyeOffset;
-                        rightEyeY = pos.y + CELL_SIZE - eyeOffset - eyeSize;
+                        leftEyeX = x + eyeOffset;
+                        leftEyeY = y + eyeOffset;
+                        rightEyeX = x + eyeOffset;
+                        rightEyeY = y + CELL_SIZE - eyeOffset - eyeSize;
                         break;
                     case 'right':
-                        leftEyeX = pos.x + CELL_SIZE - eyeOffset - eyeSize;
-                        leftEyeY = pos.y + eyeOffset;
-                        rightEyeX = pos.x + CELL_SIZE - eyeOffset - eyeSize;
-                        rightEyeY = pos.y + CELL_SIZE - eyeOffset - eyeSize;
+                        leftEyeX = x + CELL_SIZE - eyeOffset - eyeSize;
+                        leftEyeY = y + eyeOffset;
+                        rightEyeX = x + CELL_SIZE - eyeOffset - eyeSize;
+                        rightEyeY = y + CELL_SIZE - eyeOffset - eyeSize;
                         break;
                 }
                 
@@ -332,6 +284,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.fillRect(rightEyeX, rightEyeY, eyeSize, eyeSize);
             }
         });
+        
+        // Log drawing status
+        console.log('Game redrawn with', snake.length, 'snake segments');
     }
     
     // Game over
@@ -339,9 +294,13 @@ document.addEventListener('DOMContentLoaded', () => {
         gameActive = false;
         clearInterval(gameLoop);
         
+        console.log('Game over! Final score:', score);
+        
         // Show game over screen
-        gameOverElement.classList.remove('hidden');
-        finalScoreElement.textContent = score;
+        if (gameOverElement) {
+            gameOverElement.classList.remove('hidden');
+            if (finalScoreElement) finalScoreElement.textContent = score;
+        }
     }
     
     // Handle keyboard input
@@ -403,39 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(gameLoop);
         } else {
             gameActive = true;
-            gameLoop = setInterval(update, gameSpeed);
-        }
-    }
-    
-    // Handle window resize
-    function handleResize() {
-        // Reinitialize the board
-        board.init();
-        
-        // Redraw
-        if (gameActive) {
-            draw();
-        }
-    }
-    
-    // Handle color scheme changes
-    function handleColorSchemeChange() {
-        // Reload the icons with the new color scheme
-        githubIcons.loadImages();
-        
-        // Update board colors
-        const rootStyle = getComputedStyle(document.documentElement);
-        board.colors = {
-            0: rootStyle.getPropertyValue('--github-green-0').trim(),
-            1: rootStyle.getPropertyValue('--github-green-1').trim(),
-            2: rootStyle.getPropertyValue('--github-green-2').trim(), 
-            3: rootStyle.getPropertyValue('--github-green-3').trim(),
-            4: rootStyle.getPropertyValue('--github-green-4').trim()
-        };
-        
-        // Redraw the game
-        if (gameActive) {
-            draw();
+            gameLoop = setInterval(update, 150);
         }
     }
     

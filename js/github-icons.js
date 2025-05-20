@@ -59,7 +59,19 @@ class GithubIcons {
             this.icons[key].img = new Image();
             
             // Get the computed style for icon fill color
-            const iconFill = getComputedStyle(document.documentElement).getPropertyValue('--icon-fill').trim();
+            const rootStyle = getComputedStyle(document.documentElement);
+            // Check if we're in dark mode by checking the background color
+            const isDarkMode = rootStyle.getPropertyValue('--github-bg').trim() === '#0d1117';
+            
+            // Choose the appropriate color for better visibility
+            let iconFill;
+            if (isDarkMode) {
+                // In dark mode, use the brightest green
+                iconFill = rootStyle.getPropertyValue('--github-green-4').trim();
+            } else {
+                // In light mode, use the darkest green
+                iconFill = rootStyle.getPropertyValue('--github-green-4').trim();
+            }
             
             // Create SVG with dynamic fill
             const svgBase64 = this.icons[key].path;
