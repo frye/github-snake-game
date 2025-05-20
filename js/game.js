@@ -155,38 +155,46 @@ document.addEventListener('DOMContentLoaded', () => {
         switch (direction) {
             case 'up':
                 head.y -= 1;
+                // Wrap around when hitting the top edge
+                if (head.y < 0) {
+                    head.y = board.rows - 1;
+                }
                 break;
             case 'down':
                 head.y += 1;
+                // Wrap around when hitting the bottom edge
+                if (head.y >= board.rows) {
+                    head.y = 0;
+                }
                 break;
             case 'left':
                 head.x -= 1;
+                // Wrap around when hitting the left edge
+                if (head.x < 0) {
+                    head.x = board.cols - 1;
+                }
                 break;
             case 'right':
                 head.x += 1;
+                // Wrap around when hitting the right edge
+                if (head.x >= board.cols) {
+                    head.x = 0;
+                }
                 break;
         }
         
         // Add new head to the beginning of the snake array
         snake.unshift(head);
         
-        // Increase cell intensity where snake passes
-        board.increaseIntensity(head.x, head.y);
+        // Increase cell intensity where snake passes, but don't increase wall intensity
+        if (board.isValidPosition(head.x, head.y) && !board.isWall(head.x, head.y)) {
+            board.increaseIntensity(head.x, head.y);
+        }
     }
     
     // Check for collisions
     function checkCollision() {
         const head = snake[0];
-        
-        // Check for wall collision
-        if (
-            head.x < 0 || 
-            head.x >= board.cols || 
-            head.y < 0 || 
-            head.y >= board.rows
-        ) {
-            return true;
-        }
         
         // Check for self collision (skip the head)
         for (let i = 1; i < snake.length; i++) {
@@ -195,12 +203,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
+        // Check for wall collision (colored tiles)
+        if (board.isWall(head.x, head.y)) {
+            return true;
+        }
+        
         return false;
     }
     
     // Create a new food item at a random position
     function createFood() {
-        // Get a random position that is not occupied by the snake
+        // Get a random position that is not occupied by the snake or a wall
         let newFoodPos;
         
         do {
@@ -208,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 x: Math.floor(Math.random() * board.cols),
                 y: Math.floor(Math.random() * board.rows)
             };
-        } while (isPositionOccupied(newFoodPos));
+        } while (isPositionOccupied(newFoodPos) || isPositionWall(newFoodPos));
         
         // Get a random GitHub icon
         const icon = githubIcons.getRandomIcon();
@@ -224,6 +237,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if a position is occupied by the snake
     function isPositionOccupied(pos) {
         return snake.some(segment => segment.x === pos.x && segment.y === pos.y);
+    }
+    
+    // Check if a position is a wall
+    function isPositionWall(pos) {
+        return board.isWall(pos.x, pos.y);
     }
     
     // Handle snake eating food

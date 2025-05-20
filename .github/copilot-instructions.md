@@ -18,6 +18,10 @@ and GitHub-related icons as collectible food items.
   - contribution-board.js - GitHub contribution graph board implementation
   - github-icons.js - GitHub-themed icons for collectible items
 
+## Runnin the Game
+-------------------
+1. Open index.html in a web browser.
+
 ## Main Game Components
 -------------------
 1. ContributionBoard class - Manages the GitHub-like contribution graph

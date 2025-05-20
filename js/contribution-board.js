@@ -32,13 +32,14 @@ class ContributionBoard {
         // Use the canvas dimensions provided externally
         console.log(`Canvas dimensions: ${this.canvas.width}x${this.canvas.height}`);
         
-        // Calculate rows and columns based on cell size
-        this.cols = Math.floor(this.canvas.width / (this.cellSize + this.padding));
-        this.rows = Math.floor(this.canvas.height / (this.cellSize + this.padding));
+        // Calculate rows and columns to completely fill the canvas
+        // Adding extra cells to ensure complete coverage even with padding
+        this.cols = Math.ceil(this.canvas.width / (this.cellSize + this.padding));
+        this.rows = Math.ceil(this.canvas.height / (this.cellSize + this.padding));
         
         // Make sure we have even number of rows/cols
-        this.cols = this.cols - (this.cols % 2);
-        this.rows = this.rows - (this.rows % 2);
+        this.cols = this.cols + (this.cols % 2);
+        this.rows = this.rows + (this.rows % 2);
         
         console.log(`Board dimensions: ${this.cols}x${this.rows} cells`);
         
@@ -46,40 +47,131 @@ class ContributionBoard {
         this.reset();
     }
     
-    // Reset the board to all empty cells
+    // Reset the board to all empty cells with wall patterns
     reset() {
         this.board = [];
         
-        // Create random pattern with mostly empty cells and some colored cells
+        // Create a board with all empty cells first
         for (let y = 0; y < this.rows; y++) {
             const row = [];
             for (let x = 0; x < this.cols; x++) {
-                // Random intensity (mostly empty, with some colored cells)
-                const rand = Math.random();
-                let intensity = 0;
-                
-                if (rand > 0.8) {
-                    intensity = 1;
-                } 
-                if (rand > 0.9) {
-                    intensity = 2;
-                }
-                if (rand > 0.95) {
-                    intensity = 3;
-                }
-                if (rand > 0.98) {
-                    intensity = 4;
-                }
-                
-                row.push(intensity);
+                row.push(0); // Start with all empty cells
             }
             this.board.push(row);
+        }
+        
+        // Now add wall patterns
+        // Get snake start position for safe zone
+        const safeZoneX = Math.floor(this.cols / 4); // Quarter of the board width
+        const safeZoneY = Math.floor(this.rows / 2); // Half of the board height
+        this.generateWalls(safeZoneX, safeZoneY);
+    }
+    
+    // Generate wall patterns
+    generateWalls(snakeStartX, snakeStartY) {
+        // Safe distance - cells to keep clear in front of the snake
+        const safeDistance = 5;
+        
+        // Add fewer, more varied walls
+        // Add a single horizontal wall with varied intensity
+        this.addHorizontalWall(Math.floor(this.rows * 0.75), 0.5, null, snakeStartX, snakeStartY, safeDistance);
+        
+        // Add a single vertical wall with varied intensity
+        this.addVerticalWall(Math.floor(this.cols * 0.65), 0.5, null, snakeStartX, snakeStartY, safeDistance);
+        
+        // Add a couple of random walls
+        this.addRandomWalls(3, 6, 3, snakeStartX, snakeStartY, safeDistance);
+    }
+    
+    // Add a horizontal wall with some gaps
+    addHorizontalWall(row, gapProbability, fixedIntensity, safeX, safeY, safeDistance) {
+        if (row < 0 || row >= this.rows) return;
+        
+        for (let x = 0; x < this.cols; x++) {
+            // Skip if we're in the safe zone
+            if (Math.abs(x - safeX) < safeDistance && Math.abs(row - safeY) < safeDistance) {
+                continue;
+            }
+            
+            // Create gaps with given probability
+            if (Math.random() > gapProbability) {
+                // Use varied intensity (2-4) for more interesting walls
+                const intensity = fixedIntensity || Math.floor(Math.random() * 3) + 2;
+                this.board[row][x] = intensity;
+            }
+        }
+    }
+    
+    // Add a vertical wall with some gaps
+    addVerticalWall(col, gapProbability, fixedIntensity, safeX, safeY, safeDistance) {
+        if (col < 0 || col >= this.cols) return;
+        
+        for (let y = 0; y < this.rows; y++) {
+            // Skip if we're in the safe zone
+            if (Math.abs(col - safeX) < safeDistance && Math.abs(y - safeY) < safeDistance) {
+                continue;
+            }
+            
+            // Create gaps with given probability
+            if (Math.random() > gapProbability) {
+                // Use varied intensity (2-4) for more interesting walls
+                const intensity = fixedIntensity || Math.floor(Math.random() * 3) + 2;
+                this.board[y][col] = intensity;
+            }
+        }
+    }
+    
+    // Add random smaller walls
+    addRandomWalls(minLength, maxLength, maxIntensity, safeX, safeY, safeDistance) {
+        // Fewer walls (1-3)
+        const numWalls = Math.floor(Math.random() * 2) + 1; // Reduce to 1-2 walls
+        
+        for (let i = 0; i < numWalls; i++) {
+            // Randomly decide between horizontal and vertical wall
+            const isHorizontal = Math.random() > 0.5;
+            const length = Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
+            let startX, startY, valid = false;
+            
+            // Try to find a valid position (not too close to the snake)
+            let attempts = 0;
+            while (!valid && attempts < 10) {
+                if (isHorizontal) {
+                    startY = Math.floor(Math.random() * this.rows);
+                    startX = Math.floor(Math.random() * (this.cols - length));
+                } else {
+                    startX = Math.floor(Math.random() * this.cols);
+                    startY = Math.floor(Math.random() * (this.rows - length));
+                }
+                
+                // Check if this wall would be too close to the snake's start
+                if (Math.abs(startX - safeX) >= safeDistance || Math.abs(startY - safeY) >= safeDistance) {
+                    valid = true;
+                }
+                
+                attempts++;
+            }
+            
+            if (valid) {
+                // Random intensity (2-maxIntensity) for each wall
+                const wallIntensity = Math.floor(Math.random() * (maxIntensity - 1)) + 2;
+                
+                if (isHorizontal) {
+                    for (let x = startX; x < startX + length; x++) {
+                        this.board[startY][x] = wallIntensity;
+                    }
+                } else {
+                    for (let y = startY; y < startY + length; y++) {
+                        this.board[y][startX] = wallIntensity;
+                    }
+                }
+            }
         }
     }
     
     // Draw the entire contribution board
     draw() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // First draw the background to cover the whole canvas
+        this.drawBackground();
         
         for (let y = 0; y < this.rows; y++) {
             for (let x = 0; x < this.cols; x++) {
@@ -89,15 +181,23 @@ class ContributionBoard {
         }
     }
     
+    // Draw background to fill the entire canvas
+    drawBackground() {
+        // Fill the entire canvas with the base color (empty cell color)
+        this.ctx.fillStyle = this.colors[0];
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    
     // Draw a single cell on the board
     drawCell(x, y, color) {
         const xPos = x * (this.cellSize + this.padding);
         const yPos = y * (this.cellSize + this.padding);
         
-        // Add a border for better visibility of cells during debugging
+        // Fill the cell with the appropriate color
         this.ctx.fillStyle = color;
         this.ctx.fillRect(xPos, yPos, this.cellSize, this.cellSize);
         
+        // Add a subtle grid line for better visibility
         this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
         this.ctx.strokeRect(xPos, yPos, this.cellSize, this.cellSize);
     }
@@ -113,6 +213,12 @@ class ContributionBoard {
     // Check if position is within bounds
     isValidPosition(x, y) {
         return x >= 0 && x < this.cols && y >= 0 && y < this.rows;
+    }
+    
+    // Check if a position is a wall
+    isWall(x, y) {
+        if (!this.isValidPosition(x, y)) return false;
+        return this.board[y][x] >= 3; // Use intensity 3 and above as walls
     }
     
     // Increase cell intensity when snake passes through
