@@ -228,4 +228,15 @@ class ContributionBoard {
             this.board[y][x] = Math.min(4, this.board[y][x] + 1);
         }
     }
+    
+    // Decrease cell intensity when snake tail moves away
+    decreaseIntensity(x, y) {
+        if (this.isValidPosition(x, y)) {
+            // Return to original intensity (0) for non-wall cells
+            // Wall cells (intensity >= 3) should remain as walls
+            if (this.board[y][x] < 3) {
+                this.board[y][x] = 0;
+            }
+        }
+    }
 }

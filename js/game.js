@@ -137,7 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
             eatFood();
         } else {
             // Remove tail if not eating
-            snake.pop();
+            const tail = snake.pop();
+            // Decrease intensity of the cell where the tail was
+            board.decreaseIntensity(tail.x, tail.y);
         }
         
         // Draw everything
