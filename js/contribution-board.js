@@ -72,15 +72,9 @@ class ContributionBoard {
         // Safe distance - cells to keep clear in front of the snake
         const safeDistance = 5;
         
-        // Add fewer, more varied walls
-        // Add a single horizontal wall with varied intensity
-        this.addHorizontalWall(Math.floor(this.rows * 0.75), 0.5, null, snakeStartX, snakeStartY, safeDistance);
-        
-        // Add a single vertical wall with varied intensity
-        this.addVerticalWall(Math.floor(this.cols * 0.65), 0.5, null, snakeStartX, snakeStartY, safeDistance);
-        
-        // Add a couple of random walls
-        this.addRandomWalls(3, 6, 3, snakeStartX, snakeStartY, safeDistance);
+        // Generate 2-6 random walls with lengths between 3-5 blocks
+        // According to the requirements
+        this.addRandomWalls(3, 5, 3, snakeStartX, snakeStartY, safeDistance);
     }
     
     // Add a horizontal wall with some gaps
@@ -123,8 +117,8 @@ class ContributionBoard {
     
     // Add random smaller walls
     addRandomWalls(minLength, maxLength, maxIntensity, safeX, safeY, safeDistance) {
-        // Fewer walls (1-3)
-        const numWalls = Math.floor(Math.random() * 2) + 1; // Reduce to 1-2 walls
+        // Generate 2-6 walls according to requirements
+        const numWalls = Math.floor(Math.random() * 5) + 2; // 2-6 walls
         
         for (let i = 0; i < numWalls; i++) {
             // Randomly decide between horizontal and vertical wall
@@ -152,8 +146,9 @@ class ContributionBoard {
             }
             
             if (valid) {
-                // Random intensity (2-maxIntensity) for each wall
-                const wallIntensity = Math.floor(Math.random() * (maxIntensity - 1)) + 2;
+                // Random intensity (3-maxIntensity) for each wall
+                // Using 3 as minimum to ensure all walls are detected by isWall method
+                const wallIntensity = Math.floor(Math.random() * (maxIntensity - 2)) + 3;
                 
                 if (isHorizontal) {
                     for (let x = startX; x < startX + length; x++) {
