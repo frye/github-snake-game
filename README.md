@@ -48,7 +48,3 @@ To modify or enhance the game:
 ## License
 
 MIT
-
-## Credits
-
-Created as a GitHub-themed project to showcase web game development skills using vanilla JavaScript and HTML5 Canvas.
